@@ -8,12 +8,31 @@ public class Data {
         this.y = y;
     }
 
-    public int getDiff() {
+    public synchronized int getDiff() {
+        try {
+            wait(50);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return (Math.abs(x - y));
     }
 
-    public void update(int dx, int dy) {
+    public synchronized void update(int dx, int dy) {
         x = x + dx;
         y = y + dy;
+        try {
+            wait(50);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
+
+    public static void main(String[] args) {
+        Data data = new Data(0,0);
+        WriterThread writerThread = new WriterThread(data);
+        ReaderThread readerThread = new ReaderThread(data);
+        writerThread.start();
+        readerThread.start();
+    }
+
 }

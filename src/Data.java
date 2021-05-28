@@ -11,26 +11,24 @@ public class Data {
     }
 
     public synchronized int getDiff() {
-        while (turn==1) {
-            try {
+        try {
+            while (turn==1)
                 wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        int diff = Math.abs(x - y);
         turn = 1;
         notifyAll();
-
-        return (Math.abs(x - y));
+        return diff;
     }
 
     public synchronized void update(int dx, int dy) {
-        while (turn==0) {
-            try {
+        try {
+            while (turn==0)
                 wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         x = x + dx;
         y = y + dy;

@@ -1,47 +1,81 @@
 public class Data {
 
-    private int x = 0;
-    private int y = 0;
-    private int turn;
+    private int x;
+    private int y;
+    private int reading;
+    private boolean writing;
 
     public Data(int x, int y) {
         this.x = x;
         this.y = y;
-        turn = 1;
+        reading = 0;
+        writing = false;
     }
 
-    public synchronized int getDiff() {
-        try {
-            while (turn==1)
-                wait();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    public int getDiff() {
+        int diff;
+        incReading();
+        System.out.println("Calculating difference");
+        synchronized (this) {
+            try {
+                while (writing)
+                    wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-        int diff = Math.abs(x - y);
-        turn = 1;
-        notifyAll();
+        diff = Math.abs(x - y);
+        System.out.println("Calculated difference: " + diff);
+        decReading();
+        wakeup();
         return diff;
     }
 
     public synchronized void update(int dx, int dy) {
         try {
-            while (turn==0)
+            while (reading>0)
                 wait();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        writing = true;
+        System.out.println("Writing: " + dx + " " + dy);
         x = x + dx;
         y = y + dy;
-        turn = 0;
-        notifyAll();
+        writing = false;
+        System.out.println("Done writing: " + x + " " + y);
+        wakeup();
     }
+
 
     public static void main(String[] args) {
         Data data = new Data(0,0);
-        WriterThread writerThread = new WriterThread(data);
-        ReaderThread readerThread = new ReaderThread(data);
-        writerThread.start();
-        readerThread.start();
+        WriterThread[] writerThreads = new WriterThread[] {new WriterThread(data),
+                new WriterThread(data),
+                new WriterThread(data),
+                new WriterThread(data)};
+        ReaderThread[] readerThreads = new ReaderThread[] {new ReaderThread(data),
+                new ReaderThread(data),
+                new ReaderThread(data),
+                new ReaderThread(data)};
+        for (ReaderThread readerThread : readerThreads)
+            readerThread.start();
+        for (WriterThread writerThread : writerThreads)
+            writerThread.start();
+//        writerThreads[0].start();
+//        readerThreads[0].start();
+//        writerThreads[1].start();
+//        readerThreads[1].start();
+//        writerThreads[2].start();
+//        readerThreads[2].start();
+//        writerThreads[3].start();
+//        readerThreads[3].start();
     }
+
+    private synchronized void incReading(){reading++;}
+
+    private synchronized void decReading(){reading--;}
+
+    private synchronized void wakeup(){notifyAll();}
 
 }

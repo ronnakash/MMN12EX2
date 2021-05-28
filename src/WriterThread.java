@@ -11,9 +11,14 @@ public class WriterThread extends Thread{
     }
 
     @Override
-    public void run() {
+    public synchronized void run() {
         for (int i = 0; i < 10; i++) {
             myData.update(random.nextInt(100)-50,random.nextInt(100)-50);
+            try {
+                wait(20);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
